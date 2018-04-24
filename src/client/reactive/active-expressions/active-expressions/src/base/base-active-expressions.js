@@ -23,8 +23,12 @@ export class BaseActiveExpression {
    * @public
    * @returns {*} the current value of the expression
    */
-  getCurrentValue() {
-    return this.func(...(this.params));
+  async getCurrentValue() {
+    return Promise.resolve(this.func(...(this.params)));
+  }
+
+  async getLastValue() {
+    return Promise.resolve(this.lastValue);
   }
 
   /**
@@ -52,11 +56,11 @@ export class BaseActiveExpression {
    * Mainly for implementation strategies.
    * @public
    */
-  checkAndNotify() {
-    let currentValue = this.getCurrentValue();
-    if(this.lastValue === currentValue) { return; }
+  async checkAndNotify() {
+    let currentValue = await this.getCurrentValue();
+    let lastValue = await this.getLastValue();
+    if(lastValue === currentValue) { return; }
 
-    let lastValue = this.lastValue;
     this.lastValue = currentValue;
 
     this.notify(currentValue, {
@@ -77,7 +81,7 @@ export class BaseActiveExpression {
     throw new Error('Not yet implemented');
   }
 
-  onBecomeTrue(callback) {
+  async onBecomeTrue(callback) {
     // setup dependency
     this.onChange(bool => {
       if(bool) {
@@ -85,14 +89,14 @@ export class BaseActiveExpression {
       }
     });
     // check initial state
-    if(this.getCurrentValue()) {
+    if(await this.getCurrentValue()) {
       callback();
     }
 
     return this;
   }
 
-  onBecomeFalse(callback) {
+  async onBecomeFalse(callback) {
     // setup dependency
     this.onChange(bool => {
       if(!bool) {
@@ -100,20 +104,20 @@ export class BaseActiveExpression {
       }
     });
     // check initial state
-    if(!this.getCurrentValue()) {
+    if(!(await this.getCurrentValue())) {
       callback();
     }
 
     return this;
   }
 
-  nowAndOnChange(callback) {
+  async nowAndOnChange(callback) {
     // setup dependency
     this.onChange(callback);
 
     // call immediately
     // #TODO: duplicated code: we should extract this call
-    this.notify(this.getCurrentValue(), {});
+    this.notify(await this.getCurrentValue(), {});
 
     return this;
   }

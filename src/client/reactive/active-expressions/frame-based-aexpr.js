@@ -1,8 +1,8 @@
-import { BaseActiveExpression } from "active-expressions";
+import { AsyncActiveExpression } from "active-expressions";
 import { checkTicking as check } from "aexpr-ticking";
 import { PausableLoop } from 'utils';
 
-export class FrameBasedActiveExpression extends BaseActiveExpression {
+export class FrameBasedActiveExpression extends AsyncActiveExpression {
   constructor(func, ...params) {
     super(func, ...params);
   
